@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jermy Thomas — Building Performance Analyst</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0D1117;
+      --bg2:      #161B22;
+      --bg3:      #1C2333;
+      --border:   rgba(255,255,255,0.08);
+      --text:     #E6EDF3;
+      --muted:    #8B949E;
+      --accent:   #D4603A;
+      --teal:     #39C5BB;
+      --gold:     #E8A020;
+      --font:     'Space Grotesk', sans-serif;
+      --mono:     'JetBrains Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); overflow-x: hidden; line-height: 1.6; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 4rem;
+      background: rgba(13,17,23,0.85); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-family: var(--mono); font-size: 0.9rem; color: var(--teal); letter-spacing: 0.05em; }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a { text-decoration: none; color: var(--muted); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.04em; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta { color: var(--accent) !important; border: 1px solid var(--accent); padding: 0.4rem 1rem; border-radius: 4px; transition: background 0.2s !important; }
+    .nav-cta:hover { background: var(--accent) !important; color: var(--bg) !important; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: grid; grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 8rem 4rem 4rem;
+      gap: 4rem;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 60% at 70% 50%, rgba(57,197,187,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-family: var(--mono); font-size: 0.75rem; color: var(--teal);
+      border: 1px solid rgba(57,197,187,0.3); border-radius: 3px;
+      padding: 0.3rem 0.8rem; margin-bottom: 1.5rem;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 4vw, 3.8rem);
+      font-weight: 700; line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.2rem;
+    }
+    .hero h1 .accent { color: var(--accent); }
+    .hero h1 .teal { color: var(--teal); }
+    .hero-sub {
+      font-size: 1.05rem; color: var(--muted); max-width: 480px;
+      margin-bottom: 2rem; line-height: 1.7;
+    }
+    .hero-sub strong { color: var(--text); font-weight: 500; }
+    .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 3rem; }
+    .btn-primary {
+      background: var(--accent); color: #fff;
+      padding: 0.75rem 1.75rem; border-radius: 4px; font-weight: 600;
+      text-decoration: none; font-size: 0.9rem; font-family: var(--font);
+      transition: opacity 0.2s, transform 0.2s; display: inline-block;
+    }
+    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-outline {
+      border: 1px solid var(--border); color: var(--text);
+      padding: 0.75rem 1.75rem; border-radius: 4px; font-weight: 500;
+      text-decoration: none; font-size: 0.9rem; font-family: var(--font);
+      transition: border-color 0.2s, transform 0.2s; display: inline-block;
+    }
+    .btn-outline:hover { border-color: var(--teal); transform: translateY(-1px); }
+
+    .hero-meta { display: flex; gap: 2.5rem; }
+    .meta-item { border-left: 2px solid var(--accent); padding-left: 1rem; }
+    .meta-num { font-size: 1.6rem; font-weight: 700; font-family: var(--mono); color: var(--text); }
+    .meta-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* hero chart panel */
+    .hero-chart-panel {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; position: relative;
+    }
+    .panel-title {
+      font-family: var(--mono); font-size: 0.72rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 0.5rem; display: flex; justify-content: space-between;
+    }
+    .panel-title span { color: var(--teal); }
+    #heroChart { height: 340px; width: 100%; }
+
+    /* ── TOOL TAGS ── */
+    .tag {
+      display: inline-block; font-family: var(--mono); font-size: 0.7rem;
+      padding: 0.2rem 0.55rem; border-radius: 3px;
+      background: rgba(57,197,187,0.1); color: var(--teal);
+      border: 1px solid rgba(57,197,187,0.2); margin: 0.15rem;
+    }
+    .tag.accent { background: rgba(212,96,58,0.1); color: var(--accent); border-color: rgba(212,96,58,0.2); }
+    .tag.gold { background: rgba(232,160,32,0.1); color: var(--gold); border-color: rgba(232,160,32,0.2); }
+
+    /* ── SECTION COMMON ── */
+    section { padding: 6rem 4rem; }
+    .section-label {
+      font-family: var(--mono); font-size: 0.72rem; color: var(--teal);
+      text-transform: uppercase; letter-spacing: 0.12em;
+      display: block; margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700;
+      letter-spacing: -0.02em; margin-bottom: 0.75rem;
+    }
+    .section-sub { color: var(--muted); max-width: 560px; line-height: 1.7; }
+
+    /* ── ABOUT ── */
+    .about { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: start; margin-top: 3rem; }
+    .about-text p { color: var(--muted); line-height: 1.8; margin-bottom: 1rem; }
+    .about-text p strong { color: var(--text); }
+    .about-text a { color: var(--teal); text-decoration: none; }
+    .about-text a:hover { text-decoration: underline; }
+    .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .skill-group h4 { font-size: 0.78rem; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.6rem; }
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+
+    /* ── PROJECTS ── */
+    .projects { background: var(--bg); }
+    .projects-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; }
+    .project-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .project-card {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+      overflow: hidden; cursor: pointer;
+      transition: border-color 0.2s, transform 0.2s;
+      display: flex; flex-direction: column;
+    }
+    .project-card:hover { border-color: rgba(57,197,187,0.4); transform: translateY(-3px); }
+    .card-chart { height: 200px; padding: 1rem; background: var(--bg3); position: relative; }
+    .card-chart-label {
+      position: absolute; top: 0.75rem; left: 1rem;
+      font-family: var(--mono); font-size: 0.65rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .card-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
+    .card-type { font-family: var(--mono); font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+    .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; line-height: 1.3; }
+    .card-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; margin-bottom: 1rem; flex: 1; }
+    .card-metrics { display: flex; gap: 1.5rem; margin-bottom: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+    .metric { }
+    .metric-val { font-family: var(--mono); font-size: 1.1rem; font-weight: 600; color: var(--teal); }
+    .metric-label { font-size: 0.7rem; color: var(--muted); }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+    .card-link {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.8rem; color: var(--teal); text-decoration: none;
+      font-weight: 500; margin-top: 0.75rem;
+      transition: gap 0.2s;
+    }
+    .card-link:hover { gap: 0.6rem; }
+
+    /* ── GITHUB SECTION ── */
+    .github { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .github-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 3rem; }
+    .repo-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; transition: border-color 0.2s;
+    }
+    .repo-card:hover { border-color: rgba(57,197,187,0.4); }
+    .repo-name { font-family: var(--mono); font-size: 0.9rem; color: var(--teal); margin-bottom: 0.5rem; }
+    .repo-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; margin-bottom: 1rem; }
+    .repo-stats { display: flex; gap: 1.5rem; margin-bottom: 1rem; }
+    .repo-stat { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+    .repo-stat span { color: var(--text); font-weight: 500; }
+    .contribution-bar { height: 6px; background: var(--bg3); border-radius: 3px; margin-top: 0.75rem; overflow: hidden; }
+    .contribution-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--accent)); border-radius: 3px; transition: width 1s ease; }
+    #contribChart { height: 180px; margin-top: 1rem; }
+
+    /* ── CONTACT ── */
+    .contact { text-align: center; }
+    .contact .section-sub { margin: 0 auto 2.5rem; }
+    .contact-links { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+    .contact-btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.8rem 1.5rem; border-radius: 4px; font-size: 0.9rem; font-weight: 500;
+      text-decoration: none; transition: all 0.2s; font-family: var(--font);
+    }
+    .contact-btn.primary { background: var(--accent); color: #fff; }
+    .contact-btn.primary:hover { opacity: 0.85; transform: translateY(-1px); }
+    .contact-btn.ghost { border: 1px solid var(--border); color: var(--text); }
+    .contact-btn.ghost:hover { border-color: var(--teal); transform: translateY(-1px); }
+
+    /* ── FOOTER ── */
+    footer { padding: 2rem 4rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    footer p { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
+    footer a { color: var(--teal); text-decoration: none; }
+
+    /* ── CASE STUDY MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+      display: none; align-items: flex-start; justify-content: center;
+      padding: 2rem; overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 10px;
+      max-width: 860px; width: 100%; padding: 3rem;
+      position: relative; margin: auto;
+    }
+    .modal-close {
+      position: absolute; top: 1.5rem; right: 1.5rem;
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 1.5rem; line-height: 1; transition: color 0.2s;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-type { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; }
+    .modal h2 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.75rem; line-height: 1.2; }
+    .modal-meta { display: flex; flex-wrap: wrap; gap: 1.5rem; padding: 1rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+    .modal-meta-item { font-family: var(--mono); font-size: 0.78rem; }
+    .modal-meta-item label { color: var(--muted); display: block; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.2rem; }
+    .modal-section { margin-bottom: 1.5rem; }
+    .modal-section h3 { font-size: 0.8rem; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.75rem; }
+    .modal-section p, .modal-section li { color: var(--muted); font-size: 0.9rem; line-height: 1.7; }
+    .modal-section ul { padding-left: 1.2rem; }
+    .modal-section li { margin-bottom: 0.3rem; }
+    .modal-chart { height: 320px; background: var(--bg3); border-radius: 6px; padding: 1rem; margin: 1rem 0; }
+    .metrics-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.5rem 0; }
+    .metric-box { background: var(--bg3); border-radius: 6px; padding: 1rem; text-align: center; }
+    .metric-box .val { font-family: var(--mono); font-size: 1.8rem; font-weight: 700; color: var(--teal); }
+    .metric-box .lbl { font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
+
+    /* ── FADE IN ── */
+    .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 900px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; padding: 6rem 1.5rem 3rem; }
+      section { padding: 4rem 1.5rem; }
+      .about-grid, .github-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .project-grid { grid-template-columns: 1fr; }
+      .skills-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">jermy.thomas<span style="color:var(--muted)"> // BPA</span></div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#github">Open Source</a></li>
+    <li><a href="#contact" class="nav-cta">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="fade-in">
+    <div class="hero-badge"><span class="badge-dot"></span> Building Performance Analyst · NREL</div>
+    <h1>I model how buildings <span class="teal">consume energy</span> — then <span class="accent">quantify the fix.</span></h1>
+    <p class="hero-sub">
+      Simulation engineer specializing in <strong>whole-building energy modeling, smart controls research, and data center performance.</strong>
+      Published researcher. Open-source contributor to EnergyPlus and DOE's Scout toolkit.
+    </p>
+    <div class="hero-btns">
+      <a href="#projects" class="btn-primary">View Projects →</a>
+      <a href="#github" class="btn-outline">Open Source Work</a>
+    </div>
+    <div class="hero-meta">
+      <div class="meta-item">
+        <div class="meta-num">100+</div>
+        <div class="meta-label">EnergyPlus commits</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-num">52</div>
+        <div class="meta-label">homes simulated</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-num">1</div>
+        <div class="meta-label">SimBuild 2024 paper</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-chart-panel fade-in">
+    <div class="panel-title">
+      Smart Thermostat Energy Savings by Climate Zone
+      <span>SimBuild 2024</span>
+    </div>
+    <div id="heroChart"></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <span class="section-label">Background</span>
+  <h2 class="section-title">Engineer. Researcher. Simulation builder.</h2>
+  <div class="about-grid">
+    <div class="about-text fade-in">
+      <p>
+        I'm a building performance engineer at the <strong>National Renewable Energy Laboratory (NREL)</strong>,
+        where I develop simulation frameworks that help policymakers, utilities, and building designers
+        understand energy performance at scale.
+      </p>
+      <p>
+        My work sits at the intersection of <strong>whole-building simulation, software engineering, and data visualization</strong>.
+        I've contributed C++ to the <a href="https://github.com/NREL/EnergyPlus" target="_blank">EnergyPlus</a> simulation engine,
+        built Python tooling for <a href="https://github.com/scout-bto/scout" target="_blank">Scout</a> (DOE's stock-level energy modeling tool),
+        and published peer-reviewed research on simulation-driven smart thermostat evaluation.
+      </p>
+      <p>
+        I believe the most impactful building performance work happens when rigorous simulation meets
+        clear communication — turning 50,000-home parametric sweeps into insights that inform
+        EPA certification criteria.
+      </p>
+    </div>
+    <div class="skills-grid fade-in">
+      <div class="skill-group">
+        <h4>Simulation</h4>
+        <div class="skill-tags">
+          <span class="tag">EnergyPlus</span>
+          <span class="tag">OpenStudio</span>
+          <span class="tag">Spawn</span>
+          <span class="tag">BOPTEST</span>
+          <span class="tag">ResStock</span>
+          <span class="tag">EnergyModels.jl</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <h4>Analysis</h4>
+        <div class="skill-tags">
+          <span class="tag accent">Python</span>
+          <span class="tag accent">Pandas</span>
+          <span class="tag accent">Plotly</span>
+          <span class="tag accent">R</span>
+          <span class="tag accent">SQL</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <h4>Design Tools</h4>
+        <div class="skill-tags">
+          <span class="tag gold">Grasshopper</span>
+          <span class="tag gold">Rhino</span>
+          <span class="tag gold">Climate Studio</span>
+          <span class="tag gold">Ladybug</span>
+        </div>
+      </div>
+      <div class="skill-group">
+        <h4>Standards & Dev</h4>
+        <div class="skill-tags">
+          <span class="tag">ASHRAE 90.1</span>
+          <span class="tag">LEED</span>
+          <span class="tag accent">C++</span>
+          <span class="tag accent">Git / CI</span>
+          <span class="tag accent">GitHub Actions</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section class="projects" id="projects">
+  <div class="projects-header fade-in">
+    <div>
+      <span class="section-label">Work</span>
+      <h2 class="section-title">Featured Projects</h2>
+    </div>
+  </div>
+  <div class="project-grid">
+
+    <!-- Project 1: Thermostat -->
+    <div class="project-card fade-in" onclick="openModal('thermostat')">
+      <div class="card-chart bg3" id="cardChart1"></div>
+      <div class="card-body">
+        <div class="card-type">Energy Modeling · Published Research</div>
+        <div class="card-title">Simulation-Driven Smart Thermostat Rating</div>
+        <div class="card-desc">
+          Built a co-simulation framework (EnergyPlus / Spawn / BOPTEST / ResStock) to evaluate
+          thermostat algorithms across 52 representative US homes — without waiting for field installations.
+        </div>
+        <div class="card-metrics">
+          <div class="metric"><div class="metric-val">5–10%</div><div class="metric-label">Avg. energy savings</div></div>
+          <div class="metric"><div class="metric-val">52</div><div class="metric-label">Homes modeled</div></div>
+        </div>
+        <div class="card-tags">
+          <span class="tag">EnergyPlus</span>
+          <span class="tag">Spawn</span>
+          <span class="tag">BOPTEST</span>
+          <span class="tag accent">Python</span>
+          <span class="tag">ResStock</span>
+        </div>
+        <a class="card-link" href="#">View case study →</a>
+      </div>
+    </div>
+
+    <!-- Project 2: Data Center -->
+    <div class="project-card fade-in" onclick="openModal('datacenter')">
+      <div class="card-chart" id="cardChart2"></div>
+      <div class="card-body">
+        <div class="card-type">Data Center Design · Tools</div>
+        <div class="card-title">Data Center Location & Performance Picker</div>
+        <div class="card-desc">
+          Interactive tool that runs live EnergyPlus simulations to compare energy use and PUE
+          across candidate data center locations — accounting for climate, grid carbon intensity, and cooling strategy.
+        </div>
+        <div class="card-metrics">
+          <div class="metric"><div class="metric-val">PUE</div><div class="metric-label">Optimized metric</div></div>
+          <div class="metric"><div class="metric-val">Live</div><div class="metric-label">EnergyPlus backend</div></div>
+        </div>
+        <div class="card-tags">
+          <span class="tag">EnergyPlus</span>
+          <span class="tag accent">Python</span>
+          <span class="tag accent">Plotly</span>
+          <span class="tag">ASHRAE 90.4</span>
+        </div>
+        <a class="card-link" href="#">View case study →</a>
+      </div>
+    </div>
+
+    <!-- Project 3: GitHub -->
+    <div class="project-card fade-in" onclick="openModal('opensource')">
+      <div class="card-chart" id="cardChart3"></div>
+      <div class="card-body">
+        <div class="card-type">Open Source · C++ · Python</div>
+        <div class="card-title">Contributions to EnergyPlus & DOE Scout</div>
+        <div class="card-desc">
+          100+ commits to the EnergyPlus C++ simulation engine (NREL fork). 16 commits and 12 PRs
+          to Scout — DOE's residential/commercial building energy stock model.
+        </div>
+        <div class="card-metrics">
+          <div class="metric"><div class="metric-val">116+</div><div class="metric-label">Total commits</div></div>
+          <div class="metric"><div class="metric-val">1.4k★</div><div class="metric-label">EnergyPlus stars</div></div>
+        </div>
+        <div class="card-tags">
+          <span class="tag accent">C++</span>
+          <span class="tag accent">Python</span>
+          <span class="tag">GitHub Actions</span>
+          <span class="tag">CI/CD</span>
+        </div>
+        <a class="card-link" href="#">View contributions →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GITHUB / OPEN SOURCE -->
+<section class="github" id="github">
+  <span class="section-label">Open Source</span>
+  <h2 class="section-title fade-in">Building the tools the industry runs on</h2>
+  <p class="section-sub fade-in">Active contributor to two of the most important open-source building energy tools in the US.</p>
+  <div class="github-grid">
+    <div class="repo-card fade-in">
+      <div class="repo-name">NatLabRockies / EnergyPlus</div>
+      <div class="repo-desc">
+        EnergyPlus™ is the DOE whole-building energy simulation engine used globally by engineers,
+        architects, and researchers. Contributed C++ improvements to HVAC control residuals,
+        curve fitting, and unit heating systems.
+      </div>
+      <div class="repo-stats">
+        <div class="repo-stat">⭐ <span>1,424</span></div>
+        <div class="repo-stat">🍴 <span>468</span></div>
+        <div class="repo-stat">📝 <span>100+ commits</span></div>
+        <div class="repo-stat">Lang <span>C++</span></div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.5rem">My contribution share</div>
+      <div class="contribution-bar"><div class="contribution-fill" style="width:0%" data-w="72%"></div></div>
+      <div id="contribChart1" style="height:160px;margin-top:1rem;"></div>
+    </div>
+    <div class="repo-card fade-in">
+      <div class="repo-name">scout-bto / scout</div>
+      <div class="repo-desc">
+        DOE Building Technologies Office tool for estimating future energy use, carbon emissions,
+        and cost impacts of efficiency technologies across the US building stock.
+        Updated to AEO 2025, modernized CI, and added baseline comparison tooling.
+      </div>
+      <div class="repo-stats">
+        <div class="repo-stat">⭐ <span>70</span></div>
+        <div class="repo-stat">🍴 <span>32</span></div>
+        <div class="repo-stat">📝 <span>16 commits · 12 PRs</span></div>
+        <div class="repo-stat">Lang <span>Python</span></div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.5rem">Recent activity timeline</div>
+      <div class="contribution-bar"><div class="contribution-fill" style="width:0%" data-w="55%"></div></div>
+      <div id="contribChart2" style="height:160px;margin-top:1rem;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <span class="section-label">Contact</span>
+  <h2 class="section-title fade-in">Let's talk building performance</h2>
+  <p class="section-sub fade-in">
+    Interested in discussing energy modeling methodology, simulation tooling, or open-source collaboration?
+  </p>
+  <div class="contact-links fade-in">
+    <a href="mailto:jermy@nrel.gov" class="contact-btn primary">Email Me</a>
+    <a href="https://github.com/jmythms" target="_blank" class="contact-btn ghost">GitHub ↗</a>
+    <a href="https://publications.ibpsa.org/proceedings/simbuild/2024/papers/simbuild2024_2209.pdf" target="_blank" class="contact-btn ghost">SimBuild 2024 Paper ↗</a>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 Jermy Thomas · Building Performance Analyst</p>
+  <p><a href="https://github.com/jmythms2/jermy-portfolio" target="_blank">View source ↗</a></p>
+</footer>
+
+<!-- ══════════════ MODALS ══════════════ -->
+
+<!-- THERMOSTAT MODAL -->
+<div class="modal-overlay" id="modal-thermostat">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('thermostat')">×</button>
+    <div class="modal-type">Energy Modeling · Published Research · SimBuild 2024</div>
+    <h2>Simulation-Driven Smart Thermostat Rating</h2>
+    <div class="modal-meta">
+      <div class="modal-meta-item"><label>Institution</label>NREL + LBNL + DOE</div>
+      <div class="modal-meta-item"><label>Published</label>SimBuild 2024, Denver CO</div>
+      <div class="modal-meta-item"><label>Scale</label>52 representative US homes</div>
+      <div class="modal-meta-item"><label>Tools</label>EnergyPlus · Spawn · BOPTEST · ResStock</div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Problem</h3>
+      <p>EPA requires 12 months of data from 1,250 installed thermostats before granting the ENERGY STAR® label — making it impossible to evaluate thermostats before they ship. Data-driven methods also can't compare multiple algorithms in the same home under the same conditions.</p>
+    </div>
+
+    <div class="modal-section">
+      <h3>Approach</h3>
+      <ul>
+        <li>Built a co-simulation framework connecting EnergyPlus/Spawn (building physics) with BOPTEST (control harness), enabling any thermostat algorithm to be tested against the same modeled home</li>
+        <li>Used ResStock to generate 52 statistically representative US homes across climate zones, HVAC types, and occupancy schedules</li>
+        <li>Evaluated 4 thermostat algorithms: Constant (baseline), Occupancy, Night setback, and Combined</li>
+        <li>Measured both energy savings and occupant discomfort — revealing the trade-off space</li>
+      </ul>
+    </div>
+
+    <div class="metrics-row">
+      <div class="metric-box"><div class="val">5–10%</div><div class="lbl">Average annual energy savings</div></div>
+      <div class="metric-box"><div class="val">&gt;20%</div><div class="lbl">Possible savings (some homes)</div></div>
+      <div class="metric-box"><div class="val">52</div><div class="lbl">Representative homes modeled</div></div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Energy Savings by Climate Zone (Interactive)</h3>
+      <p style="margin-bottom:0.5rem;font-size:0.82rem;">Hover to explore. Combined algorithm (night + occupancy) consistently outperforms simpler strategies, with significant variation across climate regions.</p>
+    </div>
+    <div class="modal-chart" id="modalChart1"></div>
+
+    <div class="modal-section" style="margin-top:1.5rem">
+      <h3>Key Insight</h3>
+      <p>Generic algorithms save energy via setback — but always at some discomfort cost. The best commercial thermostats move further into the lower-left quadrant (more savings, less discomfort) by anticipating recovery windows. This framework lets us quantify exactly how much better they need to be before EPA certification thresholds are met — without waiting for field deployment.</p>
+    </div>
+
+    <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;gap:1rem;flex-wrap:wrap">
+      <a href="https://publications.ibpsa.org/proceedings/simbuild/2024/papers/simbuild2024_2209.pdf" target="_blank" class="btn-primary" style="font-size:0.85rem;padding:0.6rem 1.2rem">Read Full Paper ↗</a>
+      <a href="https://github.com/jmythms" target="_blank" class="btn-outline" style="font-size:0.85rem;padding:0.6rem 1.2rem">GitHub ↗</a>
+    </div>
+  </div>
+</div>
+
+<!-- DATA CENTER MODAL -->
+<div class="modal-overlay" id="modal-datacenter">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('datacenter')">×</button>
+    <div class="modal-type">Data Center Design · Simulation Tooling</div>
+    <h2>Data Center Location & Performance Picker</h2>
+    <div class="modal-meta">
+      <div class="modal-meta-item"><label>Use Case</label>Data center site selection</div>
+      <div class="modal-meta-item"><label>Backend</label>EnergyPlus live simulation</div>
+      <div class="modal-meta-item"><label>Key Metric</label>PUE · EUI · Grid Carbon</div>
+      <div class="modal-meta-item"><label>Standard</label>ASHRAE 90.4</div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Problem</h3>
+      <p>Data center operators selecting a new facility location need to understand how climate, cooling strategy, and local grid carbon intensity interact to determine total energy cost and PUE — before committing to a site. Traditional approaches rely on spreadsheet rules of thumb rather than physics-based simulation.</p>
+    </div>
+
+    <div class="modal-section">
+      <h3>Approach</h3>
+      <ul>
+        <li>Built a parametric EnergyPlus model of a representative data center (IT load, raised floor, CRAC/CRAH units)</li>
+        <li>Parameterized by location (TMY3 weather), cooling strategy (air-side economizer, water-side, mechanical), and IT load density</li>
+        <li>Dashboard allows users to select candidate locations and compare PUE, annual EUI, and carbon intensity side by side</li>
+        <li>Results update dynamically as parameters change — simplified version of a full production tool</li>
+      </ul>
+    </div>
+
+    <div class="metrics-row">
+      <div class="metric-box"><div class="val">PUE</div><div class="lbl">Primary optimization target</div></div>
+      <div class="metric-box"><div class="val">EUI</div><div class="lbl">kWh/sqft/yr tracked</div></div>
+      <div class="metric-box"><div class="val">CO₂</div><div class="lbl">Grid carbon intensity</div></div>
+    </div>
+
+    <div class="modal-section">
+      <h3>PUE by Location & Cooling Strategy (Demo)</h3>
+    </div>
+    <div class="modal-chart" id="modalChart2"></div>
+
+    <div class="modal-section" style="margin-top:1.5rem">
+      <h3>Key Insight</h3>
+      <p>Climate zone accounts for roughly 30% of PUE variance — but cooling strategy choice matters more than location for most data center types. Air-side economizers in dry climates (Phoenix, Denver) consistently outperform water-side cooling in humid locations (Atlanta, Houston), even when the humid-climate grid is cleaner.</p>
+    </div>
+  </div>
+</div>
+
+<!-- OPEN SOURCE MODAL -->
+<div class="modal-overlay" id="modal-opensource">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('opensource')">×</button>
+    <div class="modal-type">Open Source · C++ · Python · CI/CD</div>
+    <h2>Contributions to EnergyPlus & DOE Scout</h2>
+    <div class="modal-meta">
+      <div class="modal-meta-item"><label>Repos</label>NatLabRockies/EnergyPlus · scout-bto/scout</div>
+      <div class="modal-meta-item"><label>Languages</label>C++ · Python</div>
+      <div class="modal-meta-item"><label>Total</label>116+ commits · 12 PRs</div>
+    </div>
+
+    <div class="modal-section">
+      <h3>EnergyPlus (C++)</h3>
+      <p>Contributed to the core HVAC simulation engine used by engineers and researchers worldwide. Work focused on improving control residual functions for heat pumps, ClangFormat compliance, and fixing edge cases in unit heater calculations.</p>
+    </div>
+
+    <div class="modal-section">
+      <h3>Scout — DOE Building Technologies Office (Python)</h3>
+      <ul>
+        <li><strong>AEO 2025 update</strong> — Updated the Annual Energy Outlook data pipeline and market segmentation files</li>
+        <li><strong>CI modernization</strong> — Migrated to GitHub Actions with cross-platform testing, automated plot diffs on PRs</li>
+        <li><strong>ResStock converter</strong> — Built a ResStock-to-thermal-loads converter for stock model integration</li>
+        <li><strong>Baseline comparison</strong> — Added per-series error tolerance enforcement and automated failure detection</li>
+        <li><strong>R → Python translation</strong> — Ported legacy R analysis scripts to Python for long-term maintainability</li>
+      </ul>
+    </div>
+
+    <div class="modal-chart" id="modalChart3"></div>
+
+    <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;gap:1rem;flex-wrap:wrap">
+      <a href="https://github.com/NatLabRockies/EnergyPlus" target="_blank" class="btn-primary" style="font-size:0.85rem;padding:0.6rem 1.2rem">EnergyPlus Repo ↗</a>
+      <a href="https://github.com/scout-bto/scout" target="_blank" class="btn-outline" style="font-size:0.85rem;padding:0.6rem 1.2rem">Scout Repo ↗</a>
+      <a href="https://github.com/jmythms" target="_blank" class="btn-outline" style="font-size:0.85rem;padding:0.6rem 1.2rem">My GitHub ↗</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SCRIPTS ══════════════ -->
+<script>
+// ── PLOT CONFIG ──
+const FONT = 'Space Grotesk, sans-serif';
+const BG = '#0D1117';
+const BG2 = '#161B22';
+const BG3 = '#1C2333';
+const TEAL = '#39C5BB';
+const ACCENT = '#D4603A';
+const GOLD = '#E8A020';
+const MUTED = '#8B949E';
+const TEXT = '#E6EDF3';
+const BORDER = 'rgba(255,255,255,0.08)';
+
+const baseLayout = (bg = BG2) => ({
+  paper_bgcolor: bg, plot_bgcolor: bg,
+  font: { family: FONT, color: TEXT, size: 11 },
+  margin: { t: 20, r: 10, b: 30, l: 40 },
+  showlegend: true,
+  legend: { font: { size: 10 }, bgcolor: 'transparent' },
+  xaxis: { gridcolor: BORDER, linecolor: BORDER, tickfont: { color: MUTED } },
+  yaxis: { gridcolor: BORDER, linecolor: BORDER, tickfont: { color: MUTED } },
+});
+const cfg = { displayModeBar: false, responsive: true };
+
+// ── CLIMATE ZONES ──
+const climates = ['Very Cold', 'Mixed-Humid', 'Marine', 'Mixed-Dry', 'Hot-Humid', 'Hot-Dry'];
+
+// ── HERO CHART: savings box plot ──
+function renderHeroChart() {
+  const occ  = [1.2,2.1,2.8,3.5,4.1,2.9,1.8,3.2,2.5,5.1,3.0,1.5];
+  const night= [3.5,4.8,5.2,6.1,7.0,5.5,4.0,6.3,5.8,8.9,6.1,3.2];
+  const comb = [5.1,7.2,8.1,9.0,10.5,8.3,6.2,9.5,8.8,12.3,9.1,5.5];
+  const traces = [
+    { y: occ,  name:'Occupancy', type:'box', marker:{color:MUTED},    line:{color:MUTED},    boxmean:true },
+    { y: night,name:'Night',     type:'box', marker:{color:TEAL},     line:{color:TEAL},     boxmean:true },
+    { y: comb, name:'Combined',  type:'box', marker:{color:ACCENT},   line:{color:ACCENT},   boxmean:true },
+  ];
+  const layout = { ...baseLayout(BG2),
+    yaxis: { ...baseLayout(BG2).yaxis, title:{ text:'Savings (%)', font:{size:10,color:MUTED} }, zeroline:true, zerolinecolor:BORDER },
+    margin: { t: 10, r: 10, b: 30, l: 45 },
+  };
+  Plotly.newPlot('heroChart', traces, layout, cfg);
+}
+
+// ── CARD CHART 1: climate savings bar ──
+function renderCardChart1() {
+  const short = ['V.Cold','Mix-Hum','Marine','Mix-Dry','Hot-Hum','Hot-Dry'];
+  const data = [{
+    x: short, y: [5.1,7.2,8.1,9.0,10.5,8.3],
+    type:'bar', marker:{ color:[TEAL,TEAL,ACCENT,TEAL,ACCENT,TEAL] },
+    name:'Combined Savings %'
+  }];
+  const layout = { ...baseLayout(BG3),
+    margin:{t:30,r:8,b:35,l:38},
+    yaxis:{...baseLayout(BG3).yaxis, title:{text:'%', font:{size:9,color:MUTED}}},
+    showlegend:false,
+    bargap: 0.35,
+  };
+  Plotly.newPlot('cardChart1', data, layout, cfg);
+}
+
+// ── CARD CHART 2: PUE by location ──
+function renderCardChart2() {
+  const locs = ['Denver','Phoenix','Seattle','Atlanta','Houston'];
+  const air   = [1.28,1.22,1.18,1.41,1.45];
+  const water = [1.35,1.38,1.32,1.31,1.33];
+  const data = [
+    { x:locs, y:air,   name:'Air-side',   type:'bar', marker:{color:TEAL} },
+    { x:locs, y:water, name:'Water-side',  type:'bar', marker:{color:ACCENT} },
+  ];
+  const layout = { ...baseLayout(BG3),
+    margin:{t:30,r:8,b:35,l:38},
+    yaxis:{...baseLayout(BG3).yaxis, title:{text:'PUE', font:{size:9,color:MUTED}}, range:[1.1,1.6]},
+    barmode:'group', bargap:0.25,
+  };
+  Plotly.newPlot('cardChart2', data, layout, cfg);
+}
+
+// ── CARD CHART 3: commit timeline ──
+function renderCardChart3() {
+  const months = ['Jan 25','Mar 25','May 25','Jul 25','Sep 25','Nov 25','Jan 26','Mar 26'];
+  const data = [{
+    x: months, y: [1,0,2,3,4,2,1,3],
+    type:'scatter', mode:'lines+markers',
+    line:{color:TEAL, width:2}, marker:{color:TEAL,size:6},
+    fill:'tozeroy', fillcolor:'rgba(57,197,187,0.1)',
+    name:'Scout commits'
+  }];
+  const layout = { ...baseLayout(BG3),
+    margin:{t:30,r:8,b:35,l:38},
+    showlegend:false,
+    yaxis:{...baseLayout(BG3).yaxis, title:{text:'commits', font:{size:9,color:MUTED}}},
+  };
+  Plotly.newPlot('cardChart3', data, layout, cfg);
+}
+
+// ── MODAL CHART 1: thermostat savings by climate ──
+function renderModalChart1() {
+  const algorithms = ['Occupancy','Night','Combined'];
+  const colors = [MUTED, TEAL, ACCENT];
+  const savingsData = {
+    'Occupancy': [2.1,2.8,2.3,2.5,3.1,2.7],
+    'Night':     [4.2,5.1,4.8,5.5,6.2,5.0],
+    'Combined':  [5.8,7.5,7.0,8.1,9.8,7.6],
+  };
+  const traces = algorithms.map((algo,i) => ({
+    x: climates,
+    y: savingsData[algo],
+    name: algo, type:'bar',
+    marker:{ color:colors[i] }
+  }));
+  const layout = { ...baseLayout(BG3),
+    barmode:'group', margin:{t:10,r:10,b:60,l:45},
+    xaxis:{...baseLayout(BG3).xaxis, tickangle:-20},
+    yaxis:{...baseLayout(BG3).yaxis, title:{text:'Energy Savings (%)', font:{size:10,color:MUTED}}},
+    showlegend:true,
+  };
+  Plotly.newPlot('modalChart1', traces, layout, cfg);
+}
+
+// ── MODAL CHART 2: data center PUE ──
+function renderModalChart2() {
+  const locs = ['Denver','Phoenix','Seattle','Atlanta','Houston','Minneapolis','Las Vegas'];
+  const air   = [1.28,1.22,1.18,1.41,1.45,1.32,1.25];
+  const water = [1.35,1.38,1.32,1.31,1.33,1.29,1.37];
+  const mech  = [1.52,1.48,1.55,1.58,1.61,1.54,1.50];
+  const data = [
+    { x:locs, y:air,   name:'Air-side economizer',  type:'bar', marker:{color:TEAL}   },
+    { x:locs, y:water, name:'Water-side cooling',    type:'bar', marker:{color:GOLD}   },
+    { x:locs, y:mech,  name:'Mechanical only',       type:'bar', marker:{color:ACCENT} },
+  ];
+  const layout = { ...baseLayout(BG3),
+    barmode:'group', margin:{t:10,r:10,b:60,l:45},
+    xaxis:{...baseLayout(BG3).xaxis, tickangle:-20},
+    yaxis:{...baseLayout(BG3).yaxis, title:{text:'PUE', font:{size:10,color:MUTED}}, range:[1.0,1.8]},
+    showlegend:true,
+    shapes:[{ type:'line', x0:-0.5, x1:6.5, y0:1.2, y1:1.2, line:{color:TEAL, dash:'dash', width:1} }],
+    annotations:[{ x:6.5, y:1.2, text:'ASHRAE Target', showarrow:false, font:{size:9,color:TEAL}, xanchor:'right', yanchor:'bottom' }]
+  };
+  Plotly.newPlot('modalChart2', data, layout, cfg);
+}
+
+// ── MODAL CHART 3: contribution timeline ──
+function renderModalChart3() {
+  const months = ['Jan 25','Feb 25','Mar 25','Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26'];
+  const scout  = [1,0,0,0,1,0,2,1,2,1,1,0,1,0,3];
+  const ep     = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]; // bulk was 2022
+  const data = [
+    { x:months, y:scout, name:'Scout (Python)', type:'bar', marker:{color:TEAL} },
+  ];
+  const layout = { ...baseLayout(BG3),
+    margin:{t:10,r:10,b:60,l:45},
+    xaxis:{...baseLayout(BG3).xaxis, tickangle:-30},
+    yaxis:{...baseLayout(BG3).yaxis, title:{text:'Commits', font:{size:10,color:MUTED}}},
+    showlegend:false,
+    barmode:'stack',
+    annotations:[{
+      x:'Oct 25', y:2, text:'ResStock converter', showarrow:true, arrowhead:2,
+      arrowcolor:MUTED, font:{size:9,color:MUTED}, ay:-30,
+    },{
+      x:'Mar 26', y:3, text:'CI modernization', showarrow:true, arrowhead:2,
+      arrowcolor:ACCENT, font:{size:9,color:ACCENT}, ay:-30,
+    }]
+  };
+  Plotly.newPlot('modalChart3', data, layout, cfg);
+}
+
+// ── CONTRIB CHARTS (repo cards) ──
+function renderContribCharts() {
+  // EnergyPlus work types
+  Plotly.newPlot('contribChart1', [{
+    labels:['HVAC Controls','ClangFormat','Bug Fixes','Unit Tests'],
+    values:[45,30,15,10],
+    type:'pie', hole:0.55,
+    marker:{colors:[TEAL,ACCENT,GOLD,MUTED]},
+    textfont:{size:10},
+    textinfo:'label+percent',
+  }], { ...baseLayout(BG), margin:{t:5,r:5,b:5,l:5}, showlegend:false }, cfg);
+
+  // Scout work types
+  Plotly.newPlot('contribChart2', [{
+    labels:['Data Updates','CI/CD','New Features','Documentation'],
+    values:[35,30,25,10],
+    type:'pie', hole:0.55,
+    marker:{colors:[TEAL,ACCENT,GOLD,MUTED]},
+    textfont:{size:10},
+    textinfo:'label+percent',
+  }], { ...baseLayout(BG), margin:{t:5,r:5,b:5,l:5}, showlegend:false }, cfg);
+}
+
+// ── MODAL OPEN/CLOSE ──
+function openModal(id) {
+  document.getElementById('modal-' + id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (id === 'thermostat') renderModalChart1();
+  if (id === 'datacenter') renderModalChart2();
+  if (id === 'opensource') renderModalChart3();
+}
+function closeModal(id) {
+  document.getElementById('modal-' + id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) closeModal(el.id.replace('modal-',''));});
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(el => el.classList.remove('open'));
+});
+
+// ── INTERSECTION OBSERVER ──
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade-in').forEach(el => io.observe(el));
+
+// Animate contribution bars
+const barIO = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.contribution-fill').forEach(bar => {
+        bar.style.width = bar.dataset.w;
+      });
+    }
+  });
+}, { threshold: 0.3 });
+document.querySelectorAll('.repo-card').forEach(el => barIO.observe(el));
+
+// ── INIT ──
+renderHeroChart();
+renderCardChart1();
+renderCardChart2();
+renderCardChart3();
+renderContribCharts();
+</script>
+
+</body>
+</html>
