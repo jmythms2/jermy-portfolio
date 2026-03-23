@@ -17,7 +17,7 @@ from pathlib import Path
 
 # ── CONFIG ──────────────────────────────────────────────────────────────────
 EP_EXE   = Path("/tmp/EnergyPlus-25.2.0-cf7368216c-Linux-Ubuntu24.04-x86_64/energyplus")
-BASE_IDF = Path("/tmp/base_model.idf")
+BASE_IDF = Path("/tmp/EnergyPlus-25.2.0-cf7368216c-Linux-Ubuntu24.04-x86_64/ExampleFiles/AirflowNetwork_Simple_House.idf")
 SIM_DIR  = Path(__file__).parent
 EPW_DIR  = SIM_DIR / "epw"
 IDF_DIR  = SIM_DIR / "idfs"
@@ -62,102 +62,102 @@ Output:Meter,WaterSystems:NaturalGas,Hourly;
 
 def fix_idf_and_set_thermostat(base_idf: Path, out_idf: Path, tstat: dict):
     """
-    1. Fix ZoneHVAC:EquipmentList bug (remove AirLoopHVAC:UnitarySystem from zone list)
-    2. Set flat or stepped thermostat schedules
-    3. Add output meters
+    Modify AirflowNetwork_Simple_House.idf:
+    1. Set flat or stepped thermostat schedules (Schedule:Compact format)
+    2. Add output meters
     """
     text = base_idf.read_text()
 
-    # ── FIX 1: Remove AirLoopHVAC:UnitarySystem from zone equipment list ──
-    # Replace the entire ZoneHVAC:EquipmentList block — keep only Equipment 1 (ADU)
-    old_eql = r"""ZoneHVAC:EquipmentList,
-  conditioned space Equipment List,       !- Name
-  SequentialLoad,                         !- Load Distribution Scheme
-  ZoneHVAC:AirDistributionUnit,           !- Zone Equipment Object Type 1
-  ADU central ac terminal,                !- Zone Equipment Name 1
-  1,                                      !- Zone Equipment Cooling Sequence 1
-  1,                                      !- Zone Equipment Heating or No-Load Sequence 1
-  Sequential Fraction Schedule 1,         !- Zone Equipment Sequential Cooling Fraction Schedule Name 1
-  Sequential Fraction Schedule,           !- Zone Equipment Sequential Heating Fraction Schedule Name 1
-  AirLoopHVAC:UnitarySystem,              !- Zone Equipment Object Type 2
-  unit heater unitary system,             !- Zone Equipment Name 2
-  2,                                      !- Zone Equipment Cooling Sequence 2
-  2,                                      !- Zone Equipment Heating or No-Load Sequence 2
-  Sequential Fraction Schedule 3,         !- Zone Equipment Sequential Cooling Fraction Schedule Name 2
-  Sequential Fraction Schedule 2;         !- Zone Equipment Sequential Heating Fraction Schedule Name 2"""
-
-    new_eql = """ZoneHVAC:EquipmentList,
-  conditioned space Equipment List,       !- Name
-  SequentialLoad,                         !- Load Distribution Scheme
-  ZoneHVAC:AirDistributionUnit,           !- Zone Equipment Object Type 1
-  ADU central ac terminal,                !- Zone Equipment Name 1
-  1,                                      !- Zone Equipment Cooling Sequence 1
-  1,                                      !- Zone Equipment Heating or No-Load Sequence 1
-  ,                                       !- Zone Equipment Sequential Cooling Fraction Schedule Name 1
-  ;                                       !- Zone Equipment Sequential Heating Fraction Schedule Name 1"""
-
-    text = text.replace(old_eql, new_eql)
-
-    # ── FIX 2: Replace thermostat schedules ──
     hd = tstat["heat_day"]
     hn = tstat["heat_night"]
     cd = tstat["cool_day"]
     cn = tstat["cool_night"]
 
+    # ── Replace heating setpoint Schedule:Compact ──
     if hn == hd:
-        # Flat heating: constant all day
-        new_heat_day = f"""Schedule:Day:Interval,
-  heating setpoint allday1,               !- Name
-  Temperature,                            !- Schedule Type Limits Name
-  No,                                     !- Interpolate to Timestep
-  24:00,                                  !- Time 1 {{hh:mm}}
-  {hd:.4f};                                !- Value Until Time 1"""
+        new_heat = (
+            f"  Schedule:Compact,\n"
+            f"    Dual Heating Setpoints,  !- Name\n"
+            f"    Temperature,             !- Schedule Type Limits Name\n"
+            f"    Through: 12/31,          !- Field 1\n"
+            f"    For: AllDays,            !- Field 2\n"
+            f"    Until: 24:00,{hd:.1f};       !- Field 3"
+        )
     else:
-        # Stepped: setback 10pm–7am
-        new_heat_day = f"""Schedule:Day:Interval,
-  heating setpoint allday1,               !- Name
-  Temperature,                            !- Schedule Type Limits Name
-  No,                                     !- Interpolate to Timestep
-  07:00,                                  !- Time 1 {{hh:mm}}
-  {hn:.4f},                               !- Value Until Time 1
-  22:00,                                  !- Time 2 {{hh:mm}}
-  {hd:.4f},                               !- Value Until Time 2
-  24:00,                                  !- Time 3 {{hh:mm}}
-  {hn:.4f};                               !- Value Until Time 3"""
+        new_heat = (
+            f"  Schedule:Compact,\n"
+            f"    Dual Heating Setpoints,  !- Name\n"
+            f"    Temperature,             !- Schedule Type Limits Name\n"
+            f"    Through: 12/31,          !- Field 1\n"
+            f"    For: AllDays,            !- Field 2\n"
+            f"    Until: 07:00,{hn:.1f},      !- Field 3  (night setback)\n"
+            f"    Until: 22:00,{hd:.1f},      !- Field 4  (comfort)\n"
+            f"    Until: 24:00,{hn:.1f};      !- Field 5  (night setback)"
+        )
 
+    # ── Replace cooling setpoint Schedule:Compact ──
     if cn == cd:
-        new_cool_day = f"""Schedule:Day:Interval,
-  cooling setpoint allday1,               !- Name
-  Temperature,                            !- Schedule Type Limits Name
-  No,                                     !- Interpolate to Timestep
-  24:00,                                  !- Time 1 {{hh:mm}}
-  {cd:.4f};                                !- Value Until Time 1"""
+        new_cool = (
+            f"  Schedule:Compact,\n"
+            f"    Dual Cooling Setpoints,  !- Name\n"
+            f"    Temperature,             !- Schedule Type Limits Name\n"
+            f"    Through: 12/31,          !- Field 1\n"
+            f"    For: AllDays,            !- Field 2\n"
+            f"    Until: 24:00,{cd:.1f};       !- Field 3"
+        )
     else:
-        new_cool_day = f"""Schedule:Day:Interval,
-  cooling setpoint allday1,               !- Name
-  Temperature,                            !- Schedule Type Limits Name
-  No,                                     !- Interpolate to Timestep
-  07:00,                                  !- Time 1 {{hh:mm}}
-  {cn:.4f},                               !- Value Until Time 1
-  22:00,                                  !- Time 2 {{hh:mm}}
-  {cd:.4f},                               !- Value Until Time 2
-  24:00,                                  !- Time 3 {{hh:mm}}
-  {cn:.4f};                               !- Value Until Time 3"""
+        new_cool = (
+            f"  Schedule:Compact,\n"
+            f"    Dual Cooling Setpoints,  !- Name\n"
+            f"    Temperature,             !- Schedule Type Limits Name\n"
+            f"    Through: 12/31,          !- Field 1\n"
+            f"    For: AllDays,            !- Field 2\n"
+            f"    Until: 07:00,{cn:.1f},      !- Field 3  (night float up)\n"
+            f"    Until: 22:00,{cd:.1f},      !- Field 4  (comfort)\n"
+            f"    Until: 24:00,{cn:.1f};      !- Field 5  (night float up)"
+        )
 
-    # Replace the day schedule blocks
     text = re.sub(
-        r"Schedule:Day:Interval,\s+heating setpoint allday1,.*?;",
-        new_heat_day, text, flags=re.DOTALL, count=1
+        r"Schedule:Compact,\s+Dual Heating Setpoints,.*?Until: 24:00,[^;]+;",
+        new_heat, text, flags=re.DOTALL, count=1
     )
     text = re.sub(
-        r"Schedule:Day:Interval,\s+cooling setpoint allday1,.*?;",
-        new_cool_day, text, flags=re.DOTALL, count=1
+        r"Schedule:Compact,\s+Dual Cooling Setpoints,.*?Until: 24:00,[^;]+;",
+        new_cool, text, flags=re.DOTALL, count=1
     )
 
-    # ── FIX 3: Remove existing output meters and add ours ──
-    text = re.sub(r"Output:Meter,[^\n]*\n", "", text)
-    text = re.sub(r"Output:Variable,[^\n]*\n", "", text)
+    # ── Enable full-year weather simulation ──
+    text = re.sub(
+        r"(No|Yes)(,?\s*!- Run Simulation for Weather File Run Periods)",
+        r"Yes\2",
+        text, count=1
+    )
+    # Replace the two single-day RunPeriods with a full-year run
+    text = re.sub(
+        r"  RunPeriod,.*?;",
+        "",
+        text, flags=re.DOTALL,
+    )
+    text = text + """
+  RunPeriod,
+    Annual Simulation,       !- Name
+    1,                       !- Begin Month
+    1,                       !- Begin Day of Month
+    ,                        !- Begin Year
+    12,                      !- End Month
+    31,                      !- End Day of Month
+    ,                        !- End Year
+    Sunday,                  !- Day of Week for Start Day
+    Yes,                     !- Use Weather File Holidays and Special Days
+    Yes,                     !- Use Weather File Daylight Saving Period
+    No,                      !- Apply Weekend Holiday Rule
+    Yes,                     !- Use Weather File Rain Indicators
+    Yes;                     !- Use Weather File Snow Indicators
+"""
 
+    # ── Remove existing meter/variable outputs and add ours ──
+    text = re.sub(r"\s*Output:Meter:MeterFileOnly,[^\n]+\n", "\n", text)
+    text = re.sub(r"\s*Output:Variable,[^\n]+\n", "\n", text)
     text += "\n" + OUTPUT_METERS
 
     out_idf.write_text(text)
@@ -201,74 +201,90 @@ def run_ep(idf: Path, epw: Path, run_dir: Path) -> Path:
 
 
 def extract_results(run_dir: Path) -> dict:
-    """Parse EnergyPlus msgpack output. Returns annual end-uses, hourly HVAC, and comfort metrics."""
-    import msgpack
-
-    mp_file = run_dir / "eplusout.msgpack"
-    if not mp_file.exists():
-        raise FileNotFoundError(f"No eplusout.msgpack in {run_dir}")
-
-    with open(mp_file, "rb") as f:
-        data = msgpack.unpack(f, raw=False)
+    """Parse EnergyPlus HTML + CSV output. Returns annual end-uses, hourly data, and comfort metrics."""
+    import csv as csv_mod
+    import re
 
     GJ_TO_KWH = 277.778
+    J_TO_KWH  = 1 / 3_600_000
 
-    # ── Annual end-uses from TabularReports ──
-    end_uses = {}
-    comfort = {}
-    for report in data.get("TabularReports", []):
-        if report.get("ReportName") == "AnnualBuildingUtilityPerformanceSummary":
-            for table in report.get("Tables", []):
-                if table.get("TableName") == "End Uses":
-                    rows = table.get("Rows", {})
-                    # Electricity column is index 0
-                    def gj_to_kwh(row_name):
-                        try:
-                            return float(rows.get(row_name, ["0"])[0]) * GJ_TO_KWH
-                        except Exception:
-                            return 0.0
-                    end_uses = {
-                        "cooling_kwh":   gj_to_kwh("Cooling"),
-                        "heating_kwh":   gj_to_kwh("Heating"),
-                        "fans_kwh":      gj_to_kwh("Fans"),
-                        "lights_kwh":    gj_to_kwh("Interior Lighting"),
-                        "equip_kwh":     gj_to_kwh("Interior Equipment"),
-                        "water_kwh":     gj_to_kwh("Water Systems"),
-                        "total_kwh":     gj_to_kwh("Total End Uses"),
-                    }
+    # ── Annual end-uses + comfort from HTML tabular report ──
+    htm_file = run_dir / "eplustbl.htm"
+    if not htm_file.exists():
+        raise FileNotFoundError(f"No eplustbl.htm in {run_dir}")
+    html = htm_file.read_text()
 
-                if table.get("TableName") == "Comfort and Setpoint Not Met Summary":
-                    rows = table.get("Rows", {})
-                    def hrs(row_name):
-                        try:
-                            return float(rows.get(row_name, ["0"])[0])
-                        except Exception:
-                            return 0.0
-                    comfort = {
-                        "setpoint_not_met_cooling_hrs": hrs("Time Setpoint Not Met During Occupied Cooling"),
-                        "setpoint_not_met_heating_hrs": hrs("Time Setpoint Not Met During Occupied Heating"),
-                        "ashrae55_discomfort_hrs":       hrs("Time Not Comfortable Based on Simple ASHRAE 55-2004"),
-                    }
+    def find_row(html, row_label):
+        """Extract first numeric cell after a row label in an HTML table."""
+        pattern = (r'<td[^>]*>\s*' + re.escape(row_label) +
+                   r'\s*</td>\s*<td[^>]*>\s*([\d.]+)\s*</td>')
+        m = re.search(pattern, html)
+        return float(m.group(1)) if m else 0.0
 
-    # ── Hourly HVAC from MeterData ──
-    hourly_hvac = []
+    def find_two_cols(html, row_label):
+        """Extract first two numeric cells after a row label."""
+        pattern = (r'<td[^>]*>\s*' + re.escape(row_label) +
+                   r'\s*</td>\s*<td[^>]*>\s*([\d.]+)\s*</td>\s*<td[^>]*>\s*([\d.]+)\s*</td>')
+        m = re.search(pattern, html)
+        return (float(m.group(1)), float(m.group(2))) if m else (0.0, 0.0)
+
+    # Heating: electricity + gas
+    heat_elec_gj, heat_gas_gj = find_two_cols(html, "Heating")
+    cool_elec_gj, _ = find_two_cols(html, "Cooling")
+    fans_elec_gj, _ = find_two_cols(html, "Fans")
+    lights_gj, _ = find_two_cols(html, "Interior Lighting")
+    equip_gj, _ = find_two_cols(html, "Interior Equipment")
+    water_elec_gj, water_gas_gj = find_two_cols(html, "Water Systems")
+    total_elec_gj, total_gas_gj = find_two_cols(html, "Total End Uses")
+
+    end_uses = {
+        "cooling_kwh":      cool_elec_gj * GJ_TO_KWH,
+        "heating_elec_kwh": heat_elec_gj * GJ_TO_KWH,
+        "heating_gas_kwh":  heat_gas_gj  * GJ_TO_KWH,
+        "heating_kwh":      (heat_elec_gj + heat_gas_gj) * GJ_TO_KWH,
+        "fans_kwh":         fans_elec_gj * GJ_TO_KWH,
+        "lights_kwh":       lights_gj    * GJ_TO_KWH,
+        "equip_kwh":        equip_gj     * GJ_TO_KWH,
+        "water_kwh":        (water_elec_gj + water_gas_gj) * GJ_TO_KWH,
+        "total_elec_kwh":   total_elec_gj * GJ_TO_KWH,
+        "total_gas_kwh":    total_gas_gj  * GJ_TO_KWH,
+        "total_kwh":        (total_elec_gj + total_gas_gj) * GJ_TO_KWH,
+    }
+
+    comfort = {
+        "setpoint_not_met_heating_hrs": find_row(html, "Time Setpoint Not Met During Occupied Heating"),
+        "setpoint_not_met_cooling_hrs": find_row(html, "Time Setpoint Not Met During Occupied Cooling"),
+        "ashrae55_discomfort_hrs":      find_row(html, "Time Not Comfortable Based on Simple ASHRAE 55-2004"),
+    }
+
+    # ── Hourly data from CSV (skip design-day rows; annual starts at 01/01) ──
+    csv_file = run_dir / "eplusout.csv"
+    if not csv_file.exists():
+        raise FileNotFoundError(f"No eplusout.csv in {run_dir}")
+
     hourly_elec = []
-    try:
-        rows = data["MeterData"]["Hourly"]["Rows"]
-        cols = data["MeterData"]["Hourly"]["Cols"]
-        hvac_idx = next((i for i, c in enumerate(cols) if "HVAC" in c["Variable"]), None)
-        elec_idx = next((i for i, c in enumerate(cols) if c["Variable"] == "Electricity:Facility"), None)
-        J_TO_KWH = 1 / 3_600_000
-        for row in rows:
-            vals = list(row.values())[0]
-            hourly_hvac.append(vals[hvac_idx] * J_TO_KWH if hvac_idx is not None else 0.0)
-            hourly_elec.append(vals[elec_idx] * J_TO_KWH if elec_idx is not None else 0.0)
-    except Exception:
-        pass
+    hourly_gas  = []
+    hourly_hvac = []
+    in_annual   = False
 
-    # ── Monthly aggregation from hourly ──
-    monthly_hvac  = [0.0] * 12
-    monthly_elec  = [0.0] * 12
+    with open(csv_file, newline="") as f:
+        reader = csv_mod.reader(f)
+        next(reader)  # header
+        for row in reader:
+            date_str = row[0].strip()
+            if not in_annual:
+                if date_str.startswith("01/01"):
+                    in_annual = True
+                else:
+                    continue
+            hourly_elec.append(float(row[1]) * J_TO_KWH)
+            hourly_gas.append( float(row[2]) * J_TO_KWH)
+            hourly_hvac.append(float(row[3]) * J_TO_KWH)
+
+    # ── Monthly aggregation ──
+    monthly_hvac = [0.0] * 12
+    monthly_elec = [0.0] * 12
+    monthly_gas  = [0.0] * 12
     month_lengths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     h = 0
     for m, days in enumerate(month_lengths):
@@ -276,15 +292,18 @@ def extract_results(run_dir: Path) -> dict:
             if h < len(hourly_hvac):
                 monthly_hvac[m] += hourly_hvac[h]
                 monthly_elec[m] += hourly_elec[h]
+                monthly_gas[m]  += hourly_gas[h]
                 h += 1
 
     return {
-        "annual": end_uses,
-        "comfort": comfort,
+        "annual":           end_uses,
+        "comfort":          comfort,
         "monthly_hvac_kwh": monthly_hvac,
         "monthly_elec_kwh": monthly_elec,
-        "hourly_hvac_kwh":  hourly_hvac,   # full 8760
-        "hourly_elec_kwh":  hourly_elec,   # full 8760
+        "monthly_gas_kwh":  monthly_gas,
+        "hourly_hvac_kwh":  hourly_hvac,
+        "hourly_elec_kwh":  hourly_elec,
+        "hourly_gas_kwh":   hourly_gas,
     }
 
 
@@ -314,7 +333,7 @@ def main():
                 results[loc_key]["thermostats"][tstat_name] = res
                 ann = res["annual"]
                 cft = res["comfort"]
-                print(f"  Total: {ann.get('total_kwh',0):.0f} kWh | Cool: {ann.get('cooling_kwh',0):.0f} | Heat: {ann.get('heating_kwh',0):.0f}")
+                print(f"  Total: {ann.get('total_kwh',0):.0f} kWh | Cool(elec): {ann.get('cooling_kwh',0):.0f} | Heat(gas): {ann.get('heating_gas_kwh',0):.0f}")
                 print(f"  Discomfort: {cft.get('ashrae55_discomfort_hrs',0):.0f} hrs | Setpoint missed heat: {cft.get('setpoint_not_met_heating_hrs',0):.0f} hrs")
             except Exception as e:
                 import traceback
