@@ -277,18 +277,18 @@
   <div class="projects-grid">
     <div class="project-card">
       <div class="project-icon">🌡️</div>
-      <div class="project-title">MegaBOP — Smart Thermostat Co-Simulation</div>
-      <div class="project-desc">Benchmarked smart thermostat controls against conventional setpoints across a statistical sample of ResStock residential buildings using BOPTEST co-simulation. Coupled Modelica building models with Python control logic; stored time-series results in InfluxDB and visualized energy savings distributions in Grafana.</div>
-      <div class="project-desc" style="color: var(--teal); font-size: 0.82rem; margin-top: -0.5rem;">→ Gives design teams quantified, climate-aware evidence for thermostat control specifications.</div>
+      <div class="project-title">MegaBOP — Climate-Specific Thermostat Performance</div>
+      <div class="project-desc">Ran a statistical sample of ResStock residential building models through BOPTEST co-simulation to quantify exactly how much a smart thermostat strategy saves — and whether that answer changes by climate. Savings ranged from 6% in Miami to 21% in San Francisco, driven by whether the annual load is dominated by gas heating or electric cooling.</div>
+      <div class="project-desc" style="color: var(--teal); font-size: 0.82rem; margin-top: -0.5rem;">→ Replaces "10% rule of thumb" guidance with climate-specific numbers a design team can actually write into specs.</div>
       <div class="project-tags">
         <span class="tag">BOPTEST</span><span class="tag">Modelica</span><span class="tag">ResStock</span><span class="tag">Grafana</span><span class="tag">Docker</span>
       </div>
     </div>
     <div class="project-card">
       <div class="project-icon">🔧</div>
-      <div class="project-title">MOSTCOOL — Data Center Co-Simulation Platform</div>
-      <div class="project-desc">Built the first version of MOSTCOOL (ARPA-E COOLERCHIPS) by coupling EnergyPlus with a CFD reduced-order model. Led development through beta release — integrating thermal, reliability, and cost modules via HELICS co-simulation, with single-phase and two-phase cooling loop modeling via PandaPipes. Coordinated universities and national lab partners.</div>
-      <div class="project-desc" style="color: var(--teal); font-size: 0.82rem; margin-top: -0.5rem;">→ Gave facility teams quantified PUE, reliability, and cost trade-offs before committing to cooling architecture decisions.</div>
+      <div class="project-title">MOSTCOOL — Data Center Design Decision Tool</div>
+      <div class="project-desc">Built MOSTCOOL (ARPA-E COOLERCHIPS) from scratch — an integrated platform coupling EnergyPlus, flow network modeling, reliability analysis, and lifecycle cost into a single workflow. Worked directly with datacenter operators, facility engineers, and company leadership to translate co-simulation outputs into clear comparisons across cooling architectures.</div>
+      <div class="project-desc" style="color: var(--teal); font-size: 0.82rem; margin-top: -0.5rem;">→ Enabled cooling system selection based on quantified PUE, downtime risk, and cost — before any equipment was specified.</div>
       <div class="project-tags">
         <span class="tag">EnergyPlus</span><span class="tag">HELICS</span><span class="tag">PandaPipes</span><span class="tag">Modelica</span><span class="tag">ARPA-E</span>
       </div>
@@ -296,12 +296,12 @@
     <div class="project-card">
       <div class="project-icon">🏢</div>
       <div class="project-title">EnergyPlus Core + Scout Contributions</div>
-      <div class="project-desc">100+ commits to the NatLabRockies/EnergyPlus C++ source — HVAC module work, CI/CD pipeline. 12 PRs to DOE's Scout building energy tool: measure adoption modeling and emissions pathway analysis.</div>
-      <div class="project-desc" style="color: var(--teal); font-size: 0.82rem; margin-top: -0.5rem;">→ Working at the source level means fewer modeling surprises when results don't match expectations.</div>
+      <div class="project-desc">100+ contributions to EnergyPlus C++ source (HVAC modules, CI/CD) and 12 pull requests to DOE's Scout building energy policy tool — adding measure adoption modeling and emissions pathway analysis used in national decarbonization studies.</div>
+      <div class="project-desc" style="color: var(--teal); font-size: 0.82rem; margin-top: -0.5rem;">→ Knowing how the engine works internally means catching the model behaviors that surface-level tools miss — and knowing when to trust the output.</div>
       <div class="project-tags">
         <span class="tag">C++</span><span class="tag">EnergyPlus</span><span class="tag">DOE</span><span class="tag">CI/CD</span>
       </div>
-      <a class="project-link" href="https://github.com/jmythms" target="_blank">github.com/jmythms2 →</a>
+      <a class="project-link" href="https://github.com/jmythms" target="_blank">github.com/jmythms →</a>
     </div>
   </div>
 </section>
@@ -314,16 +314,16 @@
     <div class="about-text">
       <p class="section-label">About</p>
       <h2 class="section-title">Jermy Thomas</h2>
-      <p>Building performance analyst with 6+ years using EnergyPlus to quantify energy, comfort, and HVAC behavior. My work at NREL bridges rigorous simulation and clear communication — turning model outputs into decisions teams can act on.</p>
-      <p>Co-authored <strong>"Simulation-Driven Rating of Smart Thermostats"</strong> at SimBuild 2024 with NREL, LBNL, and DOE. MS thesis on thermal comfort. Experience with AMY weather file creation, ASHRAE 55 comfort analysis, and schedule/controls impact studies.</p>
-      <p>Other work: data center co-simulation (MOSTCOOL / ARPA-E), ResStock building stock analysis, 2,000+ parallel EnergyPlus runs on HPC at PNNL, eQuest modeling, OpenStudio and Eppy workflows.</p>
+      <p>Building performance analyst with 6+ years using EnergyPlus to support high-performance design — from early-stage energy studies through detailed analysis. My work at NREL centers on turning simulation outputs into clear, decision-ready information for multidisciplinary teams, government stakeholders, and industry partners.</p>
+      <p>Co-authored <strong>"Simulation-Driven Rating of Smart Thermostats"</strong> at SimBuild 2024 (NREL, LBNL, DOE). MS thesis on thermal comfort. Experience in AMY weather file creation, ASHRAE 55 comfort analysis, HVAC controls and schedule studies, and direct collaboration with industry stakeholders on building and data center design.</p>
+      <p>Other work: data center co-simulation platform (MOSTCOOL / ARPA-E COOLERCHIPS), ResStock building stock analysis, 2,000+ parallel EnergyPlus runs on HPC at PNNL, eQuest modeling, custom early-design simulation workflows.</p>
       <div class="hero-btns" style="margin-top: 1.5rem;">
         <a href="mailto:jermythomasv@gmail.com" class="btn btn-primary">Get in Touch</a>
       </div>
     </div>
     <div class="about-links">
       <a class="about-link" href="https://github.com/jmythms" target="_blank">
-        <span class="about-link-icon">GH</span> github.com/jmythms2
+        <span class="about-link-icon">GH</span> github.com/jmythms
       </a>
       <a class="about-link" href="https://publications.ibpsa.org/proceedings/simbuild/2024/papers/simbuild2024_2209.pdf" target="_blank">
         <span class="about-link-icon">📄</span> SimBuild 2024 Paper
