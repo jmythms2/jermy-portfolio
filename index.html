@@ -165,7 +165,7 @@
 <div class="hero">
   <div class="hero-text">
     <h1>Building<br><span>Performance</span><br>Analyst</h1>
-    <p class="subtitle">EnergyPlus · OpenStudio · Python · SimBuild 2024<br>Translating simulation into design decisions — energy, comfort, and HVAC at any scale.</p>
+    <p class="subtitle">How do building systems really behave — and what should a design team do about it?<br>6+ years turning EnergyPlus simulations into decisions architects can act on.</p>
     <div class="tags">
       <span class="tag hi">EnergyPlus</span>
       <span class="tag hi">OpenStudio</span>
@@ -193,7 +193,7 @@
   <p class="section-label">SimBuild 2024 · NREL / LBNL / DOE</p>
   <h2 class="section-title">Smart Thermostat Energy Study</h2>
   <p class="section-desc">
-    EnergyPlus simulations across 5 ASHRAE climate zones — same 2,000 ft² house, gas furnace + DX cooling, two thermostat control strategies. Night setback (10 pm–7 am) versus constant comfort setpoints. Results feed directly into ENERGY STAR thermostat ratings methodology.
+    When a thermostat setback saves energy in Chicago but barely moves the needle in Miami — that's a design decision, not just a number. Same house, same mechanical system, five cities. This study quantifies the energy-comfort tradeoff so building teams can specify thermostat strategies with confidence, not assumptions.
   </p>
 
   <!-- Controls -->
@@ -254,7 +254,7 @@
 <section id="savings">
   <p class="section-label">Cross-Climate Analysis</p>
   <h2 class="section-title">Night Setback Savings by Climate Zone</h2>
-  <p class="section-desc">Same 4°C heating setback, 3°C cooling float-up across ASHRAE climate zones 1A–6B. Savings driven almost entirely by gas heating reduction in cold climates; minimal impact in hot-humid zones.</p>
+  <p class="section-desc">Same control strategy, very different outcomes. Denver saves 14%, Miami saves 6% — because heating dominates in cold climates and setback cuts gas directly. This informs how a design team should specify thermostat controls for a particular location, not as a one-size rule.</p>
   <div class="savings-grid">
     <div class="chart-card">
       <h3>Total Energy Savings (kWh/yr)</h3>
@@ -278,6 +278,7 @@
       <div class="project-icon">⚡</div>
       <div class="project-title">ResStock Data Explorer</div>
       <div class="project-desc">DuckDB + HTTPFS over NREL's 550 GB ResStock dataset on AWS S3. Interactive climate zone selector with occupancy-weighted energy profiles — no local download required.</div>
+      <div class="project-desc" style="color: var(--teal); font-size: 0.82rem; margin-top: -0.5rem;">→ Helps design teams benchmark a proposed building against the actual stock in that region.</div>
       <div class="project-tags">
         <span class="tag">DuckDB</span><span class="tag">ResStock</span><span class="tag">Parquet</span><span class="tag">AWS S3</span>
       </div>
@@ -286,7 +287,8 @@
     <div class="project-card">
       <div class="project-icon">🔧</div>
       <div class="project-title">MOSTCOOL — Data Center Co-Simulation</div>
-      <div class="project-desc">Built the first version of MOSTCOOL (ARPA-E COOLERCHIPS) — coupling EnergyPlus with a CFD reduced-order model. Later expanded to integrate thermal, reliability, and cost analysis via HELICS. Led software development, coordinated university and national lab partners.</div>
+      <div class="project-desc">Built MOSTCOOL (ARPA-E COOLERCHIPS) to predict data center cooling performance under real operating conditions — integrating EnergyPlus, CFD, thermal reliability, and cost into one platform. Led development, coordinated universities and national lab partners.</div>
+      <div class="project-desc" style="color: var(--teal); font-size: 0.82rem; margin-top: -0.5rem;">→ Gave facility teams quantified cooling trade-offs before committing to equipment selection.</div>
       <div class="project-tags">
         <span class="tag">EnergyPlus</span><span class="tag">HELICS</span><span class="tag">CFD</span><span class="tag">ARPA-E</span>
       </div>
@@ -296,6 +298,7 @@
       <div class="project-icon">🏢</div>
       <div class="project-title">EnergyPlus Core + Scout Contributions</div>
       <div class="project-desc">100+ commits to the NatLabRockies/EnergyPlus C++ source — HVAC module work, CI/CD pipeline. 12 PRs to DOE's Scout building energy tool: measure adoption modeling and emissions pathway analysis.</div>
+      <div class="project-desc" style="color: var(--teal); font-size: 0.82rem; margin-top: -0.5rem;">→ Working at the source level means fewer modeling surprises when results don't match expectations.</div>
       <div class="project-tags">
         <span class="tag">C++</span><span class="tag">EnergyPlus</span><span class="tag">DOE</span><span class="tag">CI/CD</span>
       </div>
