@@ -193,6 +193,15 @@
   <p class="section-desc">
     This interactive dashboard demonstrates the kind of analysis from our SimBuild 2024 research — a simplified recreation using the same methodology to show how climate zone shapes the energy-comfort tradeoff. When a thermostat setback saves energy in Chicago but barely moves the needle in Miami, that's a design decision, not just a number. Same house, same mechanical system, five cities.
   </p>
+  <p style="font-family: var(--mono); font-size: 0.75rem; color: var(--muted); margin-bottom: 2rem;">
+    Building model: single-family home with central AC + gas furnace — EnergyPlus AirflowNetwork example, representing a typical mechanically-conditioned residential building.
+  </p>
+
+  <!-- Setpoint profile -->
+  <div class="chart-card" style="margin-bottom: 2rem;">
+    <h3>Thermostat Strategy — 24-Hour Setpoint Profile (°F)</h3>
+    <div id="chart-setpoints" style="height: 200px;"></div>
+  </div>
 
   <!-- Controls -->
   <div class="dashboard-controls">
@@ -525,8 +534,46 @@ function selectLoc(loc) {
   drawHourly(loc);
 }
 
+function drawSetpoints() {
+  const hours = Array.from({length: 25}, (_, i) => i);
+  const night = h => h < 7 || h >= 22;
+
+  const flatH  = hours.map(() => 72.0);
+  const flatC  = hours.map(() => 75.0);
+  const stepH  = hours.map(h => night(h) ? 64.4 : 72.0);
+  const stepC  = hours.map(h => night(h) ? 80.6 : 75.0);
+
+  const base = { type: 'scatter', mode: 'lines', line: { shape: 'hv', width: 2 } };
+
+  Plotly.newPlot('chart-setpoints', [
+    { ...base, name: 'Flat — heating',   x: hours, y: flatH, line: { ...base.line, color: COLORS.flat,    dash: 'dot' } },
+    { ...base, name: 'Flat — cooling',   x: hours, y: flatC, line: { ...base.line, color: COLORS.cooling, dash: 'dot' } },
+    { ...base, name: 'Stepped — heating', x: hours, y: stepH, line: { ...base.line, color: COLORS.accent  } },
+    { ...base, name: 'Stepped — cooling', x: hours, y: stepC, line: { ...base.line, color: COLORS.gold    } },
+  ], {
+    ...LAYOUT_BASE,
+    yaxis: { ...LAYOUT_BASE.yaxis, title: { text: '°F', font: { size: 10 } }, range: [61, 83] },
+    xaxis: {
+      ...LAYOUT_BASE.xaxis,
+      title: { text: 'Hour of day', font: { size: 10 } },
+      tickvals: [0, 7, 12, 18, 22, 24],
+      ticktext: ['12 am', '7 am', '12 pm', '6 pm', '10 pm', '12 am'],
+    },
+    margin: { t: 10, b: 50, l: 55, r: 20 },
+    shapes: [
+      { type: 'rect', x0: 0,  x1: 7,  y0: 0, y1: 1, xref: 'x', yref: 'paper', fillcolor: 'rgba(57,197,187,0.07)', line: { width: 0 } },
+      { type: 'rect', x0: 22, x1: 24, y0: 0, y1: 1, xref: 'x', yref: 'paper', fillcolor: 'rgba(57,197,187,0.07)', line: { width: 0 } },
+    ],
+    annotations: [
+      { x: 3.5, y: 0.88, xref: 'x', yref: 'paper', text: 'night setback', showarrow: false, font: { size: 9, color: 'rgba(57,197,187,0.55)', family: 'JetBrains Mono' } },
+      { x: 23,  y: 0.88, xref: 'x', yref: 'paper', text: 'setback',        showarrow: false, font: { size: 9, color: 'rgba(57,197,187,0.55)', family: 'JetBrains Mono' } },
+    ],
+  }, CONFIG);
+}
+
 function initAll() {
   drawHero();
+  drawSetpoints();
   selectLoc('1A_Miami');
   drawSavings();
 }
