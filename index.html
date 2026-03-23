@@ -165,15 +165,15 @@
 <div class="hero">
   <div class="hero-text">
     <h1>Building<br><span>Performance</span><br>Analyst</h1>
-    <p class="subtitle">EnergyPlus · Python · ResStock · SimBuild 2024<br>Quantifying energy, comfort, and system behavior at scale.</p>
+    <p class="subtitle">EnergyPlus · OpenStudio · Python · SimBuild 2024<br>Translating simulation into design decisions — energy, comfort, and HVAC at any scale.</p>
     <div class="tags">
       <span class="tag hi">EnergyPlus</span>
+      <span class="tag hi">OpenStudio</span>
       <span class="tag hi">Python</span>
+      <span class="tag">Thermal Comfort</span>
       <span class="tag">ResStock</span>
+      <span class="tag">eQuest</span>
       <span class="tag">Spawn</span>
-      <span class="tag">BOPTEST</span>
-      <span class="tag">OpenStudio</span>
-      <span class="tag">Grasshopper</span>
       <span class="tag">C++</span>
     </div>
     <div class="hero-btns">
@@ -190,10 +190,10 @@
 
 <!-- THERMOSTAT RESEARCH DASHBOARD -->
 <section id="research">
-  <p class="section-label">SimBuild 2024</p>
+  <p class="section-label">SimBuild 2024 · NREL / LBNL / DOE</p>
   <h2 class="section-title">Smart Thermostat Energy Study</h2>
   <p class="section-desc">
-    EnergyPlus simulations across 5 U.S. climate zones — same 2,000 ft² house, same gas furnace + DX cooling, two thermostat strategies. Night setback (10 pm–7 am) versus constant comfort setpoints.
+    EnergyPlus simulations across 5 ASHRAE climate zones — same 2,000 ft² house, gas furnace + DX cooling, two thermostat control strategies. Night setback (10 pm–7 am) versus constant comfort setpoints. Results feed directly into ENERGY STAR thermostat ratings methodology.
   </p>
 
   <!-- Controls -->
@@ -225,9 +225,9 @@
       <div class="stat-sub" id="stat-savings-kwh">from night setback</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">FLAT Discomfort Hours</div>
+      <div class="stat-label">Comfort Penalty (flat)</div>
       <div class="stat-value orange" id="stat-discomfort">—</div>
-      <div class="stat-sub">ASHRAE 55 not met</div>
+      <div class="stat-sub">hrs/yr ASHRAE 55-2004 not met</div>
     </div>
   </div>
 
@@ -254,7 +254,7 @@
 <section id="savings">
   <p class="section-label">Cross-Climate Analysis</p>
   <h2 class="section-title">Night Setback Savings by Climate Zone</h2>
-  <p class="section-desc">Same 4°C heating setback, 3°C cooling float-up — very different outcomes by climate.</p>
+  <p class="section-desc">Same 4°C heating setback, 3°C cooling float-up across ASHRAE climate zones 1A–6B. Savings driven almost entirely by gas heating reduction in cold climates; minimal impact in hot-humid zones.</p>
   <div class="savings-grid">
     <div class="chart-card">
       <h3>Total Energy Savings (kWh/yr)</h3>
@@ -285,19 +285,19 @@
     </div>
     <div class="project-card">
       <div class="project-icon">🔧</div>
-      <div class="project-title">EnergyPlus C++ Contributions</div>
-      <div class="project-desc">100+ commits to the NatLabRockies/EnergyPlus fork — HVAC module refactors, unit test coverage, CI/CD pipeline work. Contributor to one of the industry's core simulation engines.</div>
+      <div class="project-title">MOSTCOOL — Data Center Co-Simulation</div>
+      <div class="project-desc">Built the first version of MOSTCOOL (ARPA-E COOLERCHIPS) — coupling EnergyPlus with a CFD reduced-order model. Later expanded to integrate thermal, reliability, and cost analysis via HELICS. Led software development, coordinated university and national lab partners.</div>
       <div class="project-tags">
-        <span class="tag">C++</span><span class="tag">EnergyPlus</span><span class="tag">CI/CD</span><span class="tag">NREL</span>
+        <span class="tag">EnergyPlus</span><span class="tag">HELICS</span><span class="tag">CFD</span><span class="tag">ARPA-E</span>
       </div>
       <a class="project-link" href="https://github.com/jmythms2" target="_blank">github.com/jmythms2 →</a>
     </div>
     <div class="project-card">
       <div class="project-icon">🏢</div>
-      <div class="project-title">Scout BTO Contributions</div>
-      <div class="project-desc">12 PRs to DOE Building Technologies Office's Scout energy tool. Measure adoption modeling, building stock analysis, and emissions pathway calculations.</div>
+      <div class="project-title">EnergyPlus Core + Scout Contributions</div>
+      <div class="project-desc">100+ commits to the NatLabRockies/EnergyPlus C++ source — HVAC module work, CI/CD pipeline. 12 PRs to DOE's Scout building energy tool: measure adoption modeling and emissions pathway analysis.</div>
       <div class="project-tags">
-        <span class="tag">Python</span><span class="tag">DOE</span><span class="tag">Scout</span><span class="tag">BTO</span>
+        <span class="tag">C++</span><span class="tag">EnergyPlus</span><span class="tag">DOE</span><span class="tag">CI/CD</span>
       </div>
       <a class="project-link" href="https://github.com/jmythms2" target="_blank">github.com/jmythms2 →</a>
     </div>
@@ -312,9 +312,9 @@
     <div class="about-text">
       <p class="section-label">About</p>
       <h2 class="section-title">Jermy Thomas</h2>
-      <p>Building performance engineer with a simulation-first approach. I work at the intersection of physics-based energy modeling and software — translating complex thermal systems into actionable insights.</p>
-      <p>Co-authored <strong>"Simulation-Driven Rating of Smart Thermostats"</strong> at SimBuild 2024 with NREL, LBNL, and DOE collaborators. Experienced with EnergyPlus from the C++ source to the Python post-processing layer.</p>
-      <p>Previous work: ResStock analysis, Spawn co-simulation, BOPTEST testbed integration, OpenStudio workflows, Grasshopper parametric modeling.</p>
+      <p>Building performance analyst with 6+ years using EnergyPlus and OpenStudio to quantify energy, comfort, and HVAC behavior. My work at NREL bridges rigorous simulation and clear communication — turning model outputs into decisions teams can act on.</p>
+      <p>Co-authored <strong>"Simulation-Driven Rating of Smart Thermostats"</strong> at SimBuild 2024 with NREL, LBNL, and DOE. MS thesis on thermal comfort. Experience with AMY weather file creation, ASHRAE 55 comfort analysis, and schedule/controls impact studies.</p>
+      <p>Other work: data center co-simulation (MOSTCOOL / ARPA-E), ResStock building stock analysis, 2,000+ parallel EnergyPlus runs on HPC at PNNL, eQuest modeling, OpenStudio and Eppy workflows.</p>
       <div class="hero-btns" style="margin-top: 1.5rem;">
         <a href="mailto:jmythms@gmail.com" class="btn btn-primary">Get in Touch</a>
       </div>
@@ -334,7 +334,7 @@
 </section>
 
 <footer>
-  <span style="font-family: var(--mono);">jermy.thomas · building performance analyst · 2025</span>
+  <span style="font-family: var(--mono);">jermy.thomas · building performance analyst · 2026</span>
 </footer>
 
 <script>
