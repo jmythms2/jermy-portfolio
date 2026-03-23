@@ -255,14 +255,14 @@
 <section id="savings">
   <p class="section-label">Cross-Climate Analysis</p>
   <h2 class="section-title">Night Setback Savings by Climate Zone</h2>
-  <p class="section-desc">Same control strategy, very different outcomes. Denver saves 14%, Miami saves 6% — because heating dominates in cold climates and setback cuts gas directly. This informs how a design team should specify thermostat controls for a particular location, not as a one-size rule.</p>
+  <p class="section-desc">Same control strategy, very different outcomes. Denver saves 14%, Miami saves 6% — because heating dominates in cold climates and setback cuts gas directly. But night setback also increases ASHRAE 55 discomfort hours, sometimes dramatically. This is the real tradeoff a design team needs to quantify by location.</p>
   <div class="savings-grid">
     <div class="chart-card">
       <h3>Total Energy Savings (kWh/yr)</h3>
       <div id="chart-savings-abs" style="height: 320px;"></div>
     </div>
     <div class="chart-card">
-      <h3>Savings Percentage by End-Use</h3>
+      <h3>Thermal Comfort — ASHRAE 55-2004 Discomfort Hours/yr</h3>
       <div id="chart-savings-pct" style="height: 320px;"></div>
     </div>
   </div>
@@ -473,24 +473,16 @@ function drawSavings() {
     margin: { t: 10, b: 70, l: 55, r: 20 },
   }, CONFIG);
 
-  const pctTotal = locs.map(l => {
-    const f = SIM[l].thermostats.flat.annual.total_kwh;
-    const s = SIM[l].thermostats.stepped.annual.total_kwh;
-    return ((f - s) / f * 100);
-  });
-  const pctGas = locs.map(l => {
-    const f = SIM[l].thermostats.flat.annual.heating_gas_kwh;
-    const s = SIM[l].thermostats.stepped.annual.heating_gas_kwh;
-    return f > 0 ? ((f - s) / f * 100) : 0;
-  });
+  const comfortFlat    = locs.map(l => SIM[l].thermostats.flat.comfort.ashrae55_discomfort_hrs);
+  const comfortStepped = locs.map(l => SIM[l].thermostats.stepped.comfort.ashrae55_discomfort_hrs);
 
   Plotly.react('chart-savings-pct', [
-    { name: 'Total energy', x: cities, y: pctTotal, type: 'bar', marker: { color: COLORS.flat } },
-    { name: 'Gas heat only', x: cities, y: pctGas,  type: 'bar', marker: { color: COLORS.gas } },
+    { name: 'Flat (constant)',  x: cities, y: comfortFlat,    type: 'bar', marker: { color: COLORS.flat } },
+    { name: 'Stepped (setback)', x: cities, y: comfortStepped, type: 'bar', marker: { color: COLORS.accent } },
   ], {
     ...LAYOUT_BASE,
     barmode: 'group',
-    yaxis: { ...LAYOUT_BASE.yaxis, title: { text: '% saved', font: { size: 10 } } },
+    yaxis: { ...LAYOUT_BASE.yaxis, title: { text: 'hrs/yr outside ASHRAE 55', font: { size: 10 } } },
     margin: { t: 10, b: 70, l: 55, r: 20 },
   }, CONFIG);
 }
